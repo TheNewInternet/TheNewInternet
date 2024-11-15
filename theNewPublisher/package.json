@@ -1,0 +1,16 @@
+{
+  "name": "thenewpublisher",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@peculiar/webcrypto": "^1.5.0",
+    "@peculiar/x509": "^1.12.3",
+    "diodejs": "^0.0.3"
+  }
+}
