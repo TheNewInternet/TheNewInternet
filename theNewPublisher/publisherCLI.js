@@ -1,6 +1,6 @@
 const { Crypto } = require('@peculiar/webcrypto');
 const { cryptoProvider, X509CertificateGenerator, BasicConstraintsExtension, KeyUsagesExtension, KeyUsageFlags } = require('@peculiar/x509');
-const { DiodeConnection, DiodeRPC, makeReadable } = require('diodejs');
+const { DiodeConnection, DiodeRPC, makeReadable, PublishPort } = require('diodejs');
 const fs = require('fs');
 async function generateDeviceCertificate() {
   // Set up the WebCrypto provider
@@ -44,3 +44,24 @@ async function generateDeviceCertificate() {
     fs.writeFileSync('device_certificate.pem', `-----BEGIN PRIVATE KEY-----\n${pemPrivateKey}\n-----END PRIVATE KEY-----\n${pemCertificate}`);
     
 }
+
+// publish the 8080 port of the device to the diode network
+async function publishDevice() {
+    const host = 'as1.prenet.diode.io';
+    const port = 41046;
+    const certPath = 'device_certificate.pem';
+
+    //generate the device certificate if it does not exist
+    if (!fs.existsSync(certPath)) {
+        await generateDeviceCertificate();
+    }
+
+    const connection = new DiodeConnection(host, port, certPath);
+    await connection.connect();
+
+
+    const publishedPorts = [8080]; // Ports you want to publish
+    const publishPort = new PublishPort(connection, publishedPorts, certPath);
+}
+
+publishDevice();
