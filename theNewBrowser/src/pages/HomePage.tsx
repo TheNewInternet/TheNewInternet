@@ -1,10 +1,6 @@
-'use client';
-
 import React, { useState, useEffect } from 'react';
-import { Box, Button, TextField, Typography, Paper } from '@mui/material';
+import { Box, Button, TextField, Typography } from '@mui/material';
 import { Public, Wifi, Bolt, Search as SearchIcon } from '@mui/icons-material';
-import image from 'image.png';
-import { WorldNodeAnimation } from '../components/NodeAnimation';
 
 interface HomePageProps {
   centerUrl: string;
@@ -12,7 +8,11 @@ interface HomePageProps {
   onCenterSearch: (e: React.FormEvent) => void;
 }
 
-export function HomePage({ centerUrl, onCenterUrlChange, onCenterSearch }: HomePageProps) {
+export function HomePage({
+  centerUrl,
+  onCenterUrlChange,
+  onCenterSearch,
+}: HomePageProps) {
   const [rotation, setRotation] = useState(0);
 
   useEffect(() => {
@@ -25,7 +25,6 @@ export function HomePage({ centerUrl, onCenterUrlChange, onCenterSearch }: HomeP
   return (
     <>
       {/* Circular Design */}
-     
       <Box
         sx={{
           position: 'absolute',
@@ -36,7 +35,8 @@ export function HomePage({ centerUrl, onCenterUrlChange, onCenterSearch }: HomeP
           border: '4px solid #f15d2f',
           borderRadius: '50%',
           transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
-          zIndex:0
+          zIndex: 0,
+          pointerEvents: 'none',
         }}
       >
         <Public
@@ -90,9 +90,14 @@ export function HomePage({ centerUrl, onCenterUrlChange, onCenterSearch }: HomeP
           transform: 'translate(-50%, -50%)',
           textAlign: 'center',
           width: '80%',
+          zIndex: 1,
         }}
       >
-        <Typography variant="h4" fontWeight="bold" sx={{ color: '#f15d2f', mb: 2 }}>
+        <Typography
+          variant="h4"
+          fontWeight="bold"
+          sx={{ color: '#f15d2f', mb: 2 }}
+        >
           Welcome to The New Internet
         </Typography>
         <Box
@@ -124,7 +129,6 @@ export function HomePage({ centerUrl, onCenterUrlChange, onCenterSearch }: HomeP
             Go
           </Button>
         </Box>
-       
       </Box>
     </>
   );
