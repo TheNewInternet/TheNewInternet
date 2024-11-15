@@ -1,42 +1,16 @@
-import 'webpack-dev-server';
-import path from 'path';
-import fs from 'fs';
 import webpack from 'webpack';
+import path from 'path';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
-import chalk from 'chalk';
-import { merge } from 'webpack-merge';
-import { execSync, spawn } from 'child_process';
 import ReactRefreshWebpackPlugin from '@pmmmwh/react-refresh-webpack-plugin';
+import { merge } from 'webpack-merge';
 import baseConfig from './webpack.config.base';
 import webpackPaths from './webpack.paths';
-import checkNodeEnv from '../scripts/check-node-env';
-
-// When an ESLint server is running, we can't set the NODE_ENV so we'll check if it's
-// at the dev webpack config is not accidentally run in a production environment
-if (process.env.NODE_ENV === 'production') {
-  checkNodeEnv('development');
-}
+import { spawn } from 'child_process';
 
 const port = process.env.PORT || 1212;
+const skipDLLs = false; // Adjust based on your build logic
 const manifest = path.resolve(webpackPaths.dllPath, 'renderer.json');
-const skipDLLs =
-  module.parent?.filename.includes('webpack.config.renderer.dev.dll') ||
-  module.parent?.filename.includes('webpack.config.eslint');
 
-/**
- * Warn if the DLL is not built
- */
-if (
-  !skipDLLs &&
-  !(fs.existsSync(webpackPaths.dllPath) && fs.existsSync(manifest))
-) {
-  console.log(
-    chalk.black.bgYellow.bold(
-      'The DLL files are missing. Sit back while we build them for you with "npm run build-dll"',
-    ),
-  );
-  execSync('npm run postinstall');
-}
 
 const configuration: webpack.Configuration = {
   devtool: 'inline-source-map',
@@ -59,6 +33,7 @@ const configuration: webpack.Configuration = {
       type: 'umd',
     },
   },
+
 
   module: {
     rules: [
@@ -114,6 +89,11 @@ const configuration: webpack.Configuration = {
       },
     ],
   },
+  resolve: {
+    fallback: {
+      buffer: require.resolve('buffer/'),
+    },
+  },
   plugins: [
     ...(skipDLLs
       ? []
@@ -161,6 +141,9 @@ const configuration: webpack.Configuration = {
       env: process.env.NODE_ENV,
       isDevelopment: process.env.NODE_ENV !== 'production',
       nodeModules: webpackPaths.appNodeModulesPath,
+    }),
+    new webpack.ProvidePlugin({
+      Buffer: ['buffer', 'Buffer'],
     }),
   ],
 
