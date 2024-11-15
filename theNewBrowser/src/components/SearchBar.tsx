@@ -1,15 +1,14 @@
 import React from "react";
 import { Box, Button, IconButton, InputBase, Paper } from "@mui/material";
 import { ArrowBack, ArrowForward, Search } from "@mui/icons-material";
-import { HomePage } from "../pages/HomePage";
 
-interface SearchBar {
+interface SearchBarProps {
   url: string;
   onUrlChange: (url: string) => void;
   onSearch: (e: React.FormEvent) => void;
 }
 
-export function SearchBar({ url, onUrlChange, onSearch }: SearchBar) {
+export function SearchBar({ url, onUrlChange, onSearch }: SearchBarProps) {
   return (
     <Paper
       sx={{
@@ -18,27 +17,29 @@ export function SearchBar({ url, onUrlChange, onSearch }: SearchBar) {
         display: "flex",
         alignItems: "center",
         gap: 1,
+        position: 'sticky',
+        top: 0,
+        zIndex: 1000,
       }}
     >
-      {/* Back Button */}
+ 
       <IconButton
-        aria-label="Go back"
-        onClick={() => console.log("Go back")}
+        aria-label="Geri git"
+        onClick={() => console.log("Geri git")}
         size="small"
       >
         <ArrowBack />
       </IconButton>
 
-      {/* Forward Button */}
       <IconButton
-        aria-label="Go forward"
-        onClick={() => console.log("Go forward")}
+        aria-label="İleri git"
+        onClick={() => console.log("İleri git")}
         size="small"
       >
         <ArrowForward />
       </IconButton>
 
-      {/* Search Form */}
+   
       <Box
         component="form"
         onSubmit={onSearch}
@@ -50,7 +51,7 @@ export function SearchBar({ url, onUrlChange, onSearch }: SearchBar) {
       >
         <InputBase
           type="text"
-          placeholder="Enter "
+          placeholder="Site adresini girin"
           value={url}
           onChange={(e) => onUrlChange(e.target.value)}
           fullWidth
@@ -71,17 +72,6 @@ export function SearchBar({ url, onUrlChange, onSearch }: SearchBar) {
         >
           <Search />
         </Button>
-      </Box>
-      <Box>
-
-      <HomePage
-        centerUrl="" 
-        onCenterUrlChange={(url) => console.log('Fake URL Change:', url)}
-        onCenterSearch={(e) => {
-          e.preventDefault();
-          console.log('Fake search action triggered.');
-        }} 
-      ></HomePage>
       </Box>
     </Paper>
   );
