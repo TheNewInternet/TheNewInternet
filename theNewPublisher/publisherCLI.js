@@ -1,67 +1,59 @@
-const { Crypto } = require('@peculiar/webcrypto');
-const { cryptoProvider, X509CertificateGenerator, BasicConstraintsExtension, KeyUsagesExtension, KeyUsageFlags } = require('@peculiar/x509');
-const { DiodeConnection, DiodeRPC, makeReadable, PublishPort } = require('diodejs');
+//A CLI that uses binaryWrapper to publish websites on Diode Network. 
+// Options are: Public or Whitelisted. For whitelist, you need to provide the whitelist file.
+// default is public and port 8080. Default defaulf whitelist file is whitelist.txt
+
+const { publishDevice } = require('./binaryWrapper');
 const fs = require('fs');
-async function generateDeviceCertificate() {
-  // Set up the WebCrypto provider
-  const crypto = new Crypto();
-  cryptoProvider.set(crypto);
+const readline = require('readline');
 
-  // Define the ECDSA algorithm with the secp256k1 curve
-  const algorithm = {
-    name: 'ECDSA',
-    namedCurve: 'K-256', // secp256k1 curve
-  };
+const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+});
 
-  // Generate a key pair
-  const keys = await crypto.subtle.generateKey(
-    algorithm,
-    true, // Keys should be extractable
-    ['sign', 'verify']
-  );
-  const { privateKey, publicKey } = keys;
+async function main() {
+    let port = 8080;
+    let isPublic = true;
+    let whitelistFile = 'whitelist.txt';
 
-  // Create a self-signed X.509 certificate
-  const certificate = await X509CertificateGenerator.createSelfSigned({
-    serialNumber: '01', // Serial number for the certificate
-    name: 'CN=Device', // Common name for the certificate
-    notBefore: new Date(), // Valid from the current date
-    notAfter: new Date(new Date().setFullYear(new Date().getFullYear() + 1)), // 1-year validity
-    signingAlgorithm: algorithm,
-    keys: { privateKey, publicKey }, // Use the generated keys
-    extensions: [
-      new BasicConstraintsExtension(false, undefined, true), // Basic constraints extension
-      new KeyUsagesExtension(KeyUsageFlags.digitalSignature, true), // Key usages
-    ],
-  });
-
-  // Convert the certificate to PEM format
-  const pemCertificate = certificate.toString('pem');
-
-  // convert the private key to pem format
-    const pemPrivateKey = Buffer.from(await crypto.subtle.exportKey('pkcs8', privateKey)).toString('base64');
-
-    fs.writeFileSync('device_certificate.pem', `-----BEGIN PRIVATE KEY-----\n${pemPrivateKey}\n-----END PRIVATE KEY-----\n${pemCertificate}`);
+    if (process.argv.length <= 2) {
+        rl.question('Enter port number: ', (answer) => {
+            port = parseInt(answer);
+            rl.question('Public or Whitelisted? ', (answer) => {
+                if (answer === 'Public') {
+                    isPublic = true;
+                } else {
+                    isPublic = false;
+                    rl.question('Enter whitelist file name: ', (answer) => {
+                        whitelistFile = answer;
+                        publishDevice(port, isPublic, whitelistFile);
+                        rl.close();
+                    });
+                }
+                publishDevice(port, isPublic, whitelistFile);
+                rl.close();
+            });
+        });
+    }else{
+        if (process.argv.length > 2) {
+            port = parseInt(process.argv[2]);
+        }
+    
+        if (process.argv.length > 3) {
+            if (process.argv[3] === 'whitelist') {
+                isPublic = false;
+            }
+        }
+    
+        if (process.argv.length > 4) {
+            whitelistFile = process.argv[4];
+        }
+    
+    
+    
+        publishDevice(port, isPublic, whitelistFile);
+    }
     
 }
 
-// publish the 8080 port of the device to the diode network
-async function publishDevice() {
-    const host = 'as1.prenet.diode.io';
-    const port = 41046;
-    const certPath = 'device_certificate.pem';
-
-    //generate the device certificate if it does not exist
-    if (!fs.existsSync(certPath)) {
-        await generateDeviceCertificate();
-    }
-
-    const connection = new DiodeConnection(host, port, certPath);
-    await connection.connect();
-
-
-    const publishedPorts = [8080]; // Ports you want to publish
-    const publishPort = new PublishPort(connection, publishedPorts, certPath);
-}
-
-publishDevice();
+main();
