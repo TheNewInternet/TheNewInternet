@@ -1,16 +1,36 @@
 // App.tsx
+
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Button } from '@mui/material';
+import {
+  Box,
+  Typography,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  IconButton,
+  Grid,
+  Button,
+  Card,
+  CardHeader,
+  CardContent,
+  CardActions,
+} from '@mui/material';
+import WalletIcon from '@mui/icons-material/Wallet';
 import { CHAIN_NAMESPACES, IProvider, IAdapter, WEB3AUTH_NETWORK } from "@web3auth/base";
 import { EthereumPrivateKeyProvider } from "@web3auth/ethereum-provider";
 import { Web3Auth, Web3AuthOptions } from "@web3auth/modal";
 import { getDefaultExternalAdapters } from "@web3auth/default-evm-adapter";
 import RPC from "./ethersRPC"; // Ensure the path is correct
 import client_id from "../secret"; // Ensure the path is correct
-import WalletIcon from '@mui/icons-material/Wallet';
 import { SearchBar } from '../components/SearchBar';
 import { HomePage } from '../pages/HomePage';
 import LoginPage from '../pages/LoginPage';
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import LogoutIcon from "@mui/icons-material/Logout";
+import CloseIcon from "@mui/icons-material/Close";
+
+import './App.css'; 
 
 const clientId = client_id;
 
@@ -43,6 +63,14 @@ function App() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [provider, setProvider] = useState<IProvider | null>(null);
   const [web3auth, setWeb3auth] = useState<Web3Auth | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false); // State for modal
+
+  // State variables for each piece of information
+  const [userEmail, setUserEmail] = useState<string>(''); 
+  const [accounts, setAccounts] = useState<string>(''); 
+  const [balance, setBalance] = useState<string>(''); 
+  const [signedMessage, setSignedMessage] = useState<string>(''); 
+  const [transactionReceipt, setTransactionReceipt] = useState<string>(''); 
 
   useEffect(() => {
     const init = async () => {
@@ -93,74 +121,111 @@ function App() {
       await web3auth.logout();
       setProvider(null);
       setLoggedIn(false);
-      uiConsole("Logged out");
+      // Clear all info states upon logout
+      setUserEmail('');
+      setAccounts('');
+      setBalance('');
+      setSignedMessage('');
+      setTransactionReceipt('');
+      setIsModalOpen(false); // Close modal on logout
     } catch (error) {
       console.error("Logout error:", error);
     }
   };
 
-  // Utility function to log messages to the console
-  function uiConsole(...args: any[]): void {
-    const el = document.querySelector("#console>p");
-    if (el) {
-      el.innerHTML = JSON.stringify(args || {}, null, 2);
-      console.log(...args);
-    }
-  }
-
-  const getUserInfo = async () => {
+  // Action functions to fetch and set information
+  const fetchUserInfo = async () => {
     if (!web3auth) return;
-    const user = await web3auth.getUserInfo();
-    uiConsole(user);
+    try {
+      const user = await web3auth.getUserInfo();
+      // Kullanıcı bilgilerinin yapısına bağlı olarak email alanını çıkarın
+      const email = user?.email || "Email bulunamadı";
+      setUserEmail(email);
+    } catch (error) {
+      setUserEmail(`Kullanıcı bilgisi alınamadı: ${String(error)}`);
+    }
   };
 
-  const getAccounts = async () => {
+  const fetchAccounts = async () => {
     if (!provider) {
-      uiConsole("Provider not initialized yet");
+      setAccounts("Provider not initialized yet");
       return;
     }
-    const address = await RPC.getAccounts(provider);
-    uiConsole(address);
+    try {
+      const address = await RPC.getAccounts(provider);
+      setAccounts(address);
+    } catch (error) {
+      setAccounts(`Error fetching accounts: ${String(error)}`);
+    }
   };
 
-  const getBalance = async () => {
+  const fetchBalance = async () => {
     if (!provider) {
-      uiConsole("Provider not initialized yet");
+      setBalance("Provider not initialized yet");
       return;
     }
-    const balance = await RPC.getBalance(provider);
-    uiConsole(balance);
+    try {
+      const bal = await RPC.getBalance(provider);
+      setBalance(bal);
+    } catch (error) {
+      setBalance(`Error fetching balance: ${String(error)}`);
+    }
   };
 
-  const signMessage = async () => {
+  const fetchSignedMessage = async () => {
     if (!provider) {
-      uiConsole("Provider not initialized yet");
+      setSignedMessage("Provider not initialized yet");
       return;
     }
-    const signedMessage = await RPC.signMessage(provider);
-    uiConsole(signedMessage);
+    try {
+      const signedMsg = await RPC.signMessage(provider);
+      setSignedMessage(signedMsg);
+    } catch (error) {
+      setSignedMessage(`Error signing message: ${String(error)}`);
+    }
   };
 
-  const sendTransaction = async () => {
+  const fetchTransaction = async () => {
     if (!provider) {
-      uiConsole("Provider not initialized yet");
+      setTransactionReceipt("Provider not initialized yet");
       return;
     }
-    uiConsole("Sending Transaction...");
-    const transactionReceipt = await RPC.sendTransaction(provider);
-    uiConsole(transactionReceipt);
+    try {
+      setTransactionReceipt("Sending Transaction...");
+      const txReceipt = await RPC.sendTransaction(provider);
+      setTransactionReceipt(JSON.stringify(txReceipt, null, 2));
+    } catch (error) {
+      setTransactionReceipt(`Error sending transaction: ${String(error)}`);
+    }
+  };
+
+  // Handle modal open and fetch all info
+  const handleOpenModal = async () => {
+    setIsModalOpen(true);
+    // Fetch all information when modal opens
+    await fetchUserInfo();
+    await fetchAccounts();
+    await fetchBalance();
+    await fetchSignedMessage();
+    await fetchTransaction();
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
   };
 
   const loggedInView = (
     <>
-      {/* Header with SearchBar and Logout Button */}
+      {/* Header with SearchBar and Wallet Icon */}
       <Box
         sx={{
           display: 'flex',
           alignItems: 'center',
-       
           width: '100%',
-          gap: 2, // Space between SearchBar and Logout button
+          gap: 2, // Space between SearchBar and Wallet icon
         }}
       >
         {/* SearchBar Container */}
@@ -180,15 +245,20 @@ function App() {
             }}
           />
         </Box>
-        {/* Logout Button */}
-        <Button
-          variant="contained"
-          color="secondary"
-          onClick={logout}
-          sx={{backgroundColor:"#f15d2e", padding:"10px", minWidth:"20px" }}
+        {/* Wallet Icon Button */}
+        <IconButton
+          onClick={handleOpenModal}
+          sx={{
+            color: "white",
+            backgroundColor: "#f15d2e",
+            padding: "10px",
+            '&:hover': {
+              backgroundColor: "#d14a24",
+            },
+          }}
         >
-          <WalletIcon></WalletIcon>
-        </Button>
+          <WalletIcon />
+        </IconButton>
       </Box>
 
       {/* Main Content Area */}
@@ -243,29 +313,67 @@ function App() {
         )}
       </Box>
 
-      {/* Console Output */}
-      <Box id="console" sx={{ whiteSpace: 'pre-line', padding: 2 }}>
-        <Typography variant="body2" component="p"></Typography>
-      </Box>
-
-      {/* Action Buttons */}
-      <Box className="flex-container" sx={{ display: 'flex', gap: 2, padding: 2 }}>
-        <Button onClick={getUserInfo} variant="outlined">
-          Get User Info
-        </Button>
-        <Button onClick={getAccounts} variant="outlined">
-          Get Accounts
-        </Button>
-        <Button onClick={getBalance} variant="outlined">
-          Get Balance
-        </Button>
-        <Button onClick={signMessage} variant="outlined">
-          Sign Message
-        </Button>
-        <Button onClick={sendTransaction} variant="outlined">
-          Send Transaction
-        </Button>
-      </Box>
+      {/* Modal for Wallet Information */}
+      <Dialog open={isModalOpen} onClose={handleCloseModal} maxWidth="sm" fullWidth>
+        <Card>
+          <CardHeader
+            title={
+              <Typography variant="h5" align="center" fontWeight="bold">
+                Wallet Information
+              </Typography>
+            }
+          />
+          <CardContent>
+            <Box sx={{ mb: 2 }}>
+              <Typography>Email</Typography>
+              <Box sx={{ display: "flex", alignItems: "center", mt: 1, p: 2, bgcolor: "#f5f5f5", borderRadius: 1 }}>
+                <Typography sx={{ flex: 1 }}>{userEmail}</Typography>
+                <IconButton onClick={() => copyToClipboard(userEmail)}>
+                  <ContentCopyIcon />
+                </IconButton>
+              </Box>
+            </Box>
+            <Box sx={{ mb: 2 }}>
+              <Typography>Account Address</Typography>
+              <Box sx={{ display: "flex", alignItems: "center", mt: 1, p: 2, bgcolor: "#f5f5f5", borderRadius: 1 }}>
+                <Typography sx={{ flex: 1 }}>{accounts}</Typography>
+                <IconButton onClick={() => copyToClipboard(accounts)}>
+                  <ContentCopyIcon />
+                </IconButton>
+              </Box>
+            </Box>
+            <Box>
+              <Typography>Balance</Typography>
+              <Box sx={{ display: "flex", alignItems: "center", mt: 1, p: 2, bgcolor: "#f5f5f5", borderRadius: 1 }}>
+                <Typography sx={{ flex: 1 }}>{balance} ETH</Typography>
+              </Box>
+            </Box>
+          </CardContent>
+          <CardActions sx={{ justifyContent: "space-between", p: 2 }}>
+            <Button
+              onClick={logout}
+              variant="contained"
+              color="error"
+              startIcon={<LogoutIcon />}
+              className='orangeButton'
+            >
+              Logout
+            </Button>
+            <Button
+              onClick={handleCloseModal}
+              variant="outlined"
+              startIcon={<CloseIcon />}
+              style={{
+                textTransform:'none',
+                border: '1px solid #f1572f',
+                color:'#f1572f'
+              }}
+            >
+              Close
+            </Button>
+          </CardActions>
+        </Card>
+      </Dialog>
     </>
   );
 
@@ -276,9 +384,6 @@ function App() {
   return (
     <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
       {loggedIn ? loggedInView : unloggedInView}
-      <Box id="console" sx={{ whiteSpace: 'pre-line', padding: 2 }}>
-        <Typography variant="body2" component="p"></Typography>
-      </Box>
     </Box>
   );
 }
