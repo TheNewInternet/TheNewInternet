@@ -55,3 +55,19 @@ a:hover {
   align-items: center;
   margin: 20px 0;
 }
+
+.orangeButton {
+  background-color: #f1572f !important;
+  color: white !important; /* Ensure text is readable */
+  border: none !important; /* Remove border if necessary */
+text-transform: none !important;
+  border-radius: 10px !important;
+  min-width: 10rem !important;
+  box-shadow: 0px 8px 28px -6px rgba(24, 39, 75, 0.12),
+    0px 18px 88px -4px rgba(24, 39, 75, 0.14);
+  transition: all ease-in 0.1s;
+  cursor: pointer !important;
+
+
+}
+
