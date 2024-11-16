@@ -89,7 +89,7 @@ export function HomePage({
           left: '50%',
           transform: 'translate(-50%, -50%)',
           textAlign: 'center',
-          width: '80%',
+          width: '40%',
           zIndex: 1,
         }}
       >
@@ -98,7 +98,7 @@ export function HomePage({
           fontWeight="bold"
           sx={{ color: '#f15d2f', mb: 2 }}
         >
-          Welcome to The New Internet
+          Welcome to the New Internet
         </Typography>
         <Box
           component="form"
