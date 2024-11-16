@@ -1,6 +1,6 @@
 // App.tsx
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Box,
   Typography,
@@ -56,6 +56,8 @@ const web3AuthOptions: Web3AuthOptions = {
 };
 
 function App() {
+  const webviewRef = useRef(null);
+
   const [url, setUrl] = useState('');
   const [iframeUrl, setIframeUrl] = useState('');
   const [iframeError, setIframeError] = useState(false);
@@ -64,12 +66,31 @@ function App() {
   const [provider, setProvider] = useState<IProvider | null>(null);
   const [web3auth, setWeb3auth] = useState<Web3Auth | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false); // State for modal
+  const [copied, setCopied] = useState("");
 
   // State variables for each piece of information
-  const [userEmail, setUserEmail] = useState<string>('');
-  const [accounts, setAccounts] = useState<string>('');
-  const [balance, setBalance] = useState<string>('');
-
+  const [userEmail, setUserEmail] = useState<string>(''); 
+  const [accounts, setAccounts] = useState<string>(''); 
+  const [balance, setBalance] = useState<string>(''); 
+ 
+  const handleBack = () => {
+    setIframeUrl('');
+    setUrl('');
+  };
+  
+  
+  const handleForward = () => {
+    setIframeUrl('');
+    setUrl('');
+  };
+  const handleRefresh = () => {
+    if (iframeUrl) {
+      // Trigger a refresh by resetting the iframe URL to the same value
+      setIframeUrl(""); // Temporarily clear the iframe
+      setTimeout(() => setIframeUrl(url), 0); // Restore the iframe URL
+    }
+  };
+  
   useEffect(() => {
     const init = async () => {
       try {
@@ -200,9 +221,12 @@ function App() {
   const handleCloseModal = () => {
     setIsModalOpen(false);
   };
-  const copyToClipboard = (text: string) => {
+  const copyToClipboard = (text: any) => {
     navigator.clipboard.writeText(text);
+    setCopied(text); // Set the copied text as the state
+    setTimeout(() => setCopied(""), 10000); // Reset after 2 seconds
   };
+  const isCopied = (text: any) => copied === text;
 
   const loggedInView = (
     <>
@@ -217,20 +241,28 @@ function App() {
       >
         {/* SearchBar Container */}
         <Box sx={{ flexGrow: 1 }}>
-          <SearchBar
-            url={url}
-            onUrlChange={setUrl}
-            onSearch={(e) => {
-              e.preventDefault();
-              let formattedUrl = url;
-              if (!/^https?:\/\//i.test(url)) {
-                formattedUrl = 'https://' + url;
-              }
-              setIframeUrl(formattedUrl);
-              setIframeError(false);
-              setCenterUrl(url);
-            }}
-          />
+        <SearchBar
+  url={url}
+  onUrlChange={setUrl}
+  onBack={handleBack}
+  onForward={handleForward}
+  onRefresh={handleRefresh} // Pass the refresh handler
+  onSearch={(e) => {
+    e.preventDefault();
+    let formattedUrl = url;
+    if (!/^https?:\/\//i.test(url)) {
+      formattedUrl = "https://" + url;
+    }
+    setIframeUrl(formattedUrl);
+    setIframeError(false);
+    setCenterUrl(url);
+  }}
+/>
+          <webview
+        ref={webviewRef}
+        src={url}
+        style={{ width: '100%', height: '100%' }}
+      />
         </Box>
         {/* Wallet Icon Button */}
         <IconButton
@@ -239,6 +271,7 @@ function App() {
             color: "white",
             backgroundColor: "#f15d2e",
             padding: "10px",
+            marginRight:"10px",
             '&:hover': {
               backgroundColor: "#d14a24",
             },
@@ -304,6 +337,10 @@ function App() {
       <Dialog open={isModalOpen} onClose={handleCloseModal} maxWidth="sm" fullWidth>
         <Card>
           <CardHeader
+          style={{
+            backgroundColor:"#f1572f",
+            color:"white"
+          }}
             title={
               <Typography variant="h5" align="center" fontWeight="bold">
                 Wallet Information
@@ -316,7 +353,9 @@ function App() {
               <Box sx={{ display: "flex", alignItems: "center", mt: 1, p: 2, bgcolor: "#f5f5f5", borderRadius: 1 }}>
                 <Typography sx={{ flex: 1 }}>{userEmail}</Typography>
                 <IconButton onClick={() => copyToClipboard(userEmail)}>
-                  <ContentCopyIcon />
+                <ContentCopyIcon
+              sx={{ color: isCopied(userEmail) ? "#f1572f" : "inherit" }}
+            />
                 </IconButton>
               </Box>
             </Box>
@@ -325,7 +364,9 @@ function App() {
               <Box sx={{ display: "flex", alignItems: "center", mt: 1, p: 2, bgcolor: "#f5f5f5", borderRadius: 1 }}>
                 <Typography sx={{ flex: 1 }}>{accounts}</Typography>
                 <IconButton onClick={() => copyToClipboard(accounts)}>
-                  <ContentCopyIcon />
+                <ContentCopyIcon
+              sx={{ color: isCopied(accounts) ? "#f1572f" : "inherit" }}
+            />
                 </IconButton>
               </Box>
             </Box>

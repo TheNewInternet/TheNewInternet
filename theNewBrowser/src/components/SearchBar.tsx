@@ -1,14 +1,24 @@
 import React from "react";
 import { Box, Button, IconButton, InputBase, Paper } from "@mui/material";
-import { ArrowBack, ArrowForward, Search } from "@mui/icons-material";
+import { ArrowBack, ArrowForward, Refresh, Search } from "@mui/icons-material";
 
 interface SearchBarProps {
   url: string;
   onUrlChange: (url: string) => void;
   onSearch: (e: React.FormEvent) => void;
+  onBack: () => void;
+  onForward: () => void;
+  onRefresh: () => void; // New prop for refresh functionality
 }
 
-export function SearchBar({ url, onUrlChange, onSearch }: SearchBarProps) {
+export function SearchBar({
+  url,
+  onUrlChange,
+  onSearch,
+  onBack,
+  onForward,
+  onRefresh,
+}: SearchBarProps) {
   return (
     <Paper
       sx={{
@@ -17,29 +27,23 @@ export function SearchBar({ url, onUrlChange, onSearch }: SearchBarProps) {
         display: "flex",
         alignItems: "center",
         gap: 1,
-        position: 'sticky',
+        position: "sticky",
         top: 0,
         zIndex: 1000,
       }}
     >
- 
-      <IconButton
-        aria-label="Geri git"
-        onClick={() => console.log("Geri git")}
-        size="small"
-      >
+      <IconButton aria-label="Back" onClick={onBack} size="small">
         <ArrowBack />
       </IconButton>
 
-      <IconButton
-        aria-label="İleri git"
-        onClick={() => console.log("İleri git")}
-        size="small"
-      >
+      <IconButton aria-label="Forward" onClick={onForward} size="small">
         <ArrowForward />
       </IconButton>
 
-   
+      <IconButton aria-label="Refresh" onClick={onRefresh} size="small">
+        <Refresh />
+      </IconButton>
+
       <Box
         component="form"
         onSubmit={onSearch}
@@ -51,7 +55,7 @@ export function SearchBar({ url, onUrlChange, onSearch }: SearchBarProps) {
       >
         <InputBase
           type="text"
-          placeholder="Site adresini girin"
+          placeholder="Enter URL"
           value={url}
           onChange={(e) => onUrlChange(e.target.value)}
           fullWidth

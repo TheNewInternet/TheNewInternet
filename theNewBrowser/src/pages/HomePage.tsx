@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Button, TextField, Typography } from '@mui/material';
 import { Public, Wifi, Bolt, Search as SearchIcon } from '@mui/icons-material';
+import logo from '/assets/logo.png'; 
 
 interface HomePageProps {
   centerUrl: string;
@@ -87,18 +88,18 @@ export function HomePage({
           position: 'absolute',
           top: '50%',
           left: '50%',
+          width: '40%',
           transform: 'translate(-50%, -50%)',
           textAlign: 'center',
-          width: '40%',
           zIndex: 1,
         }}
       >
         <Typography
           variant="h4"
           fontWeight="bold"
-          sx={{ color: '#f15d2f', mb: 2 }}
+          sx={{ color: '#f15d2f', mb: 4 }}
         >
-          Welcome to the New Internet
+          Welcome to the <br/> New Internet
         </Typography>
         <Box
           component="form"
@@ -111,7 +112,7 @@ export function HomePage({
         >
           <TextField
             fullWidth
-            placeholder="Paste Your Link"
+            placeholder="Enter URL"
             value={centerUrl}
             onChange={(e) => onCenterUrlChange(e.target.value)}
             sx={{
@@ -128,8 +129,34 @@ export function HomePage({
           >
             Go
           </Button>
+          
         </Box>
+       
+
       </Box>
+      <div style={{
+           position:"absolute",
+           bottom:"0px",
+         right:"0px",
+            transform: "translate(-50%, -50%)",
+           marginTop:"1rem"
+      }} ><p style={{
+          color:"#a2a2a2",
+          fontSize:"2.3rem",
+          padding:"0px",
+          margin:"0px",
+       
+          
+        }} >Web3 by</p>
+        <img
+            src={logo}
+            alt="Logo"
+            style={{
+              maxWidth: '150px',
+              height: 'auto',
+            }}
+          /></div>
+      
     </>
   );
 }
