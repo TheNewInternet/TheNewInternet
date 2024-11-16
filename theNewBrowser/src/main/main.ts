@@ -9,7 +9,7 @@
  * `./src/main.js` using webpack. This gives us some performance wins.
  */
 import path from 'path';
-import { app, BrowserWindow, shell, ipcMain } from 'electron';
+import { app, BrowserWindow, shell, ipcMain, BrowserView } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
@@ -98,14 +98,28 @@ const createWindow = async () => {
     mainWindow = null;
   });
 
+  app.on('web-contents-created', (e, wc) => {
+		// wc: webContents of <webview> is now under control
+		wc.setWindowOpenHandler((handler) => {
+				return {action : "allow"}; // deny or allow
+		});
+	});
+
   const menuBuilder = new MenuBuilder(mainWindow);
   menuBuilder.buildMenu();
 
   // Open urls in the user's browser
-  mainWindow.webContents.setWindowOpenHandler((edata) => {
-    shell.openExternal(edata.url);
-    return { action: 'deny' };
-  });
+  mainWindow.webContents.setWindowOpenHandler((details) => {
+    return {
+      action: 'allow',
+      createWindow: (options) => {
+        const browserView = new BrowserView(options)
+        mainWindow?.addBrowserView(browserView)
+        browserView.setBounds({ x: 0, y: 0, width: 640, height: 480 })
+        return browserView.webContents
+      }
+    }
+  })
 
   // Remove this if your app does not use auto updates
   // eslint-disable-next-line
