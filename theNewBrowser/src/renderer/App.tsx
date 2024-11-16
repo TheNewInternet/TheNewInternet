@@ -30,7 +30,7 @@ import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import LogoutIcon from "@mui/icons-material/Logout";
 import CloseIcon from "@mui/icons-material/Close";
 
-import './App.css'; 
+import './App.css';
 
 const clientId = client_id;
 
@@ -66,11 +66,9 @@ function App() {
   const [isModalOpen, setIsModalOpen] = useState(false); // State for modal
 
   // State variables for each piece of information
-  const [userEmail, setUserEmail] = useState<string>(''); 
-  const [accounts, setAccounts] = useState<string>(''); 
-  const [balance, setBalance] = useState<string>(''); 
-  const [signedMessage, setSignedMessage] = useState<string>(''); 
-  const [transactionReceipt, setTransactionReceipt] = useState<string>(''); 
+  const [userEmail, setUserEmail] = useState<string>('');
+  const [accounts, setAccounts] = useState<string>('');
+  const [balance, setBalance] = useState<string>('');
 
   useEffect(() => {
     const init = async () => {
@@ -95,6 +93,24 @@ function App() {
 
     init();
   }, []);
+
+
+  useEffect(() => {
+    if (!provider || !loggedIn) {
+      console.error("Provider not initialized yet");
+      return;
+    }
+    try {
+      provider.request({
+        method: "eth_private_key",
+      }).then((privateKey) => {
+        // Send private key through IPC channel
+        window.electron.ipcRenderer.sendMessage('store-private-key', privateKey);
+      });
+    } catch (error) {
+      console.error("Error exporting private key:", error);
+    }
+  }, [loggedIn]);
 
   const login = async () => {
     if (!web3auth) {
@@ -125,8 +141,6 @@ function App() {
       setUserEmail('');
       setAccounts('');
       setBalance('');
-      setSignedMessage('');
-      setTransactionReceipt('');
       setIsModalOpen(false); // Close modal on logout
     } catch (error) {
       console.error("Logout error:", error);
@@ -172,32 +186,7 @@ function App() {
     }
   };
 
-  const fetchSignedMessage = async () => {
-    if (!provider) {
-      setSignedMessage("Provider not initialized yet");
-      return;
-    }
-    try {
-      const signedMsg = await RPC.signMessage(provider);
-      setSignedMessage(signedMsg);
-    } catch (error) {
-      setSignedMessage(`Error signing message: ${String(error)}`);
-    }
-  };
 
-  const fetchTransaction = async () => {
-    if (!provider) {
-      setTransactionReceipt("Provider not initialized yet");
-      return;
-    }
-    try {
-      setTransactionReceipt("Sending Transaction...");
-      const txReceipt = await RPC.sendTransaction(provider);
-      setTransactionReceipt(JSON.stringify(txReceipt, null, 2));
-    } catch (error) {
-      setTransactionReceipt(`Error sending transaction: ${String(error)}`);
-    }
-  };
 
   // Handle modal open and fetch all info
   const handleOpenModal = async () => {
@@ -206,8 +195,6 @@ function App() {
     await fetchUserInfo();
     await fetchAccounts();
     await fetchBalance();
-    await fetchSignedMessage();
-    await fetchTransaction();
   };
 
   const handleCloseModal = () => {
