@@ -195,7 +195,6 @@ ipcMain.on('store-private-key', async (event, privateKeyHex) => {
       // Output the certificate and private key
       // console.log(certPem);
       // console.log(privateKeyPem);
-      console.log("private key is", privateKeyHex);
 
       // Write the certificate with private key to a file if not already exists
       if (!fs.existsSync('device_certificate.pem'))

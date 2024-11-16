@@ -323,16 +323,7 @@ function App() {
           <HomePage
             centerUrl={centerUrl}
             onCenterUrlChange={setCenterUrl}
-            onCenterSearch={(e) => {
-              e.preventDefault();
-              let formattedUrl = centerUrl;
-              if (!/^https?:\/\//i.test(centerUrl)) {
-                formattedUrl = 'https://' + centerUrl;
-              }
-              setIframeUrl(formattedUrl);
-              setIframeError(false);
-              setUrl(centerUrl);
-            }}
+            onCenterSearch={handleSearch}
           />
         )}
       </Box>
