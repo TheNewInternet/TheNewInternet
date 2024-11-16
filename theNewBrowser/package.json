@@ -123,14 +123,18 @@
     "electron-log": "^4.4.8",
     "electron-updater": "^6.1.4",
     "elliptic": "^6.6.1",
+    "express": "^4.21.1",
     "jsrsasign": "^11.1.0",
     "key-encoder": "^1.0.0",
+    "net": "^1.0.2",
     "pkijs": "^3.2.4",
     "process": "^0.11.10",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.16.0",
-    "standard-ecies": "^2.0.0"
+    "secp256k1": "^5.0.1",
+    "standard-ecies": "^2.0.0",
+    "tls": "^0.0.1"
   },
   "devDependencies": {
     "@electron/rebuild": "^3.3.0",

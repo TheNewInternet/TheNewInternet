@@ -69,16 +69,16 @@ function App() {
   const [copied, setCopied] = useState("");
 
   // State variables for each piece of information
-  const [userEmail, setUserEmail] = useState<string>(''); 
-  const [accounts, setAccounts] = useState<string>(''); 
-  const [balance, setBalance] = useState<string>(''); 
- 
+  const [userEmail, setUserEmail] = useState<string>('');
+  const [accounts, setAccounts] = useState<string>('');
+  const [balance, setBalance] = useState<string>('');
+
   const handleBack = () => {
     setIframeUrl('');
     setUrl('');
   };
-  
-  
+
+
   const handleForward = () => {
     setIframeUrl('');
     setUrl('');
@@ -90,7 +90,7 @@ function App() {
       setTimeout(() => setIframeUrl(url), 0); // Restore the iframe URL
     }
   };
-  
+
   useEffect(() => {
     const init = async () => {
       try {
@@ -228,6 +228,19 @@ function App() {
   };
   const isCopied = (text: any) => copied === text;
 
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      setIframeUrl("https://b_XPjJl9hM7js.v0.build/");
+      await window.electron.ipcRenderer.sendMessage('create-diode-connection', url);
+      setIframeUrl("http://localhost:1438/");
+      setIframeError(false);
+      setCenterUrl(url);
+    } catch (error) {
+      console.error("Error creating Diode connection:", error);
+    }
+  };
+
   const loggedInView = (
     <>
       {/* Header with SearchBar and Wallet Icon */}
@@ -247,16 +260,7 @@ function App() {
   onBack={handleBack}
   onForward={handleForward}
   onRefresh={handleRefresh} // Pass the refresh handler
-  onSearch={(e) => {
-    e.preventDefault();
-    let formattedUrl = url;
-    if (!/^https?:\/\//i.test(url)) {
-      formattedUrl = "https://" + url;
-    }
-    setIframeUrl(formattedUrl);
-    setIframeError(false);
-    setCenterUrl(url);
-  }}
+  onSearch={handleSearch}
 />
           <webview
         ref={webviewRef}

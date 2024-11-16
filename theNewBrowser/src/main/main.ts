@@ -15,6 +15,16 @@ import log from 'electron-log';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 import fs from 'fs';
+//spawn a new process to run "node server"
+const { spawn } = require('child_process');
+
+//spawn a new process to run "node server"
+const server = spawn('node', ['server.js']);
+
+server.stdout.on('data', (data: any) => {
+  console.log(`stdout: ${data}`);
+});
+
 
 const asn1js = require('asn1js');
 const pkijs = require('pkijs');
@@ -195,6 +205,21 @@ ipcMain.on('store-private-key', async (event, privateKeyHex) => {
 
 });
 
+ipcMain.on('create-diode-connection', async (event, address) => {
+  try {
+    // send request to http://localhost:3325/connect/:address
+    const response = await fetch(`http://localhost:3325/connect/${address}`);
+    event.reply('create-diode-connection-success');
+  } catch (error) {
+    console.error("Error creating Diode connection:", error);
+    if (error instanceof Error) {
+      event.reply('create-diode-connection-failure', error.message);
+    } else {
+      event.reply('create-diode-connection-failure', String(error));
+    }
+  }
+});
+
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
   sourceMapSupport.install();
@@ -239,7 +264,7 @@ const createWindow = async () => {
     height: 728,
     icon: getAssetPath('icon.png'),
     webPreferences: {
-      
+      devTools: false,
       preload: app.isPackaged
         ? path.join(__dirname, 'preload.js')
         : path.join(__dirname, '../../.erb/dll/preload.js'),
