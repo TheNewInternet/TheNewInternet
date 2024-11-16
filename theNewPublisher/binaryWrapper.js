@@ -16,6 +16,8 @@ function publishDevice(port, isPublic,whitelistFile) {
         whitelistedArray = fs.readFileSync(whitelistFile).toString().split("\n");
         //format into port:port,adress1,adress2,adress3...
         let whitelist = port + ':' + "1438" + ',' + whitelistedArray.join(',');
+        //delete last comma
+        whitelist = whitelist.slice(0, -1);
         args.push(whitelist);
     }
     
